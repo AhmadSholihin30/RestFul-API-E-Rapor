@@ -149,12 +149,12 @@ async function login(req, res, next) {
     });
 
     // Kirim token di cookie (DIPERBAIKI AGAR BISA DIBACA BROWSER)
-    res.cookie("token", token, {
-      httpOnly: false,
-      secure: false, // False di local
-      sameSite: "Lax", // Strict diganti Lax agar tidak di-block browser saat dev
-      maxAge: 5 * 60 * 1000,
-    });
+    res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,        // WAJIB TRUE karena Railway sudah HTTPS
+    sameSite: 'none',    // WAJIB 'none' agar bisa lintas domain (Railway -> Localhost)
+    maxAge:5 * 60 * 1000 // Sesuaikan dengan expired token (misal 8 jam)
+});
 
     // Kirim data user tanpa token di body (FORMAT TETAP)
     res.json({

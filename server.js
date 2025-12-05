@@ -17,9 +17,11 @@ const { errorHandler } = require('./src/middlewares/errorHandler');
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:3000","http://192.168.56.1:3000"],// alamat frontend-mu
-  credentials: true,  
-}))
+  origin: ["http://localhost:3000", "http://192.168.56.1:3000"],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
 app.use(helmet());
 app.use(bodyParser.json());
 app.use(cookieParser());
