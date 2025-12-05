@@ -4,7 +4,7 @@ const validator = require('validator');
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 async function hashPassword(password) {
   return bcrypt.hash(password, SALT_ROUNDS);

@@ -156,19 +156,9 @@ async function login(req, res, next) {
   path: '/'
 });
 
-// 2. Cookie untuk FE (boleh dibaca JavaScript)
-res.cookie('token_client', token, {
-  httpOnly: false,
-  secure: true,
-  sameSite: 'none',
-  maxAge: 5 * 60 * 1000,
-  path: '/'
-});
-
 // 3. Body response tetap boleh
 res.json({
   message: "Login berhasil",
-  accessToken: token,
   user: {
     id: user.id,
     nama: user.nama,
