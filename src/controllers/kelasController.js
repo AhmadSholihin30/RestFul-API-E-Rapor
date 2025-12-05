@@ -66,21 +66,50 @@ async function updateKelas(req, res, next) {
     const { kelasId } = req.params;
     const { nama_kelas, tingkat, jurusan } = req.body;
 
-    // Validasi sederhana
-    if (!nama_kelas || tingkat === undefined || jurusan === undefined) {
+    // 1. Cek apakah tidak ada satupun data yang dikirim
+    if (nama_kelas === undefined && tingkat === undefined && jurusan === undefined) {
       return res.status(400).json({
-        message: "nama_kelas, tingkat, dan jurusan wajib diisi"
+        message: "Minimal satu data (nama_kelas, tingkat, atau jurusan) harus diisi untuk update"
       });
     }
 
+    // 2. Susun Query secara dinamis
+    let updates = [];
+    let params = [];
+    let paramIndex = 1;
+
+    // Cek satu per satu, jika ada isinya, masukkan ke antrian update
+    if (nama_kelas !== undefined) {
+      updates.push(`nama_kelas = $${paramIndex}`);
+      params.push(nama_kelas);
+      paramIndex++;
+    }
+
+    if (tingkat !== undefined) {
+      updates.push(`tingkat = $${paramIndex}`);
+      params.push(tingkat);
+      paramIndex++;
+    }
+
+    if (jurusan !== undefined) {
+      updates.push(`jurusan = $${paramIndex}`);
+      params.push(jurusan);
+      paramIndex++;
+    }
+
+    // 3. Gabungkan menjadi string query lengkap
+    // params terakhir adalah kelasId untuk WHERE clause
     const q = `
       UPDATE kelas 
-      SET nama_kelas = $1, tingkat = $2, jurusan = $3
-      WHERE id = $4
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
       RETURNING *;
     `;
+    
+    // Masukkan kelasId ke dalam array params di urutan terakhir
+    params.push(kelasId);
 
-    const params = [nama_kelas, tingkat, jurusan, kelasId];
+    // 4. Eksekusi Query
     const { rows } = await auditedQuery(q, params, req);
 
     if (rows.length === 0) {
