@@ -13,7 +13,7 @@ router.post('/register', register);
 // Login open
 router.post('/login', login);
 
-router.get('/me', authenticate, auditLog, authMe);
+router.get('/me', authenticate, authMe);
 
 router.post('/logout', authenticate, auditLog, logout);
 

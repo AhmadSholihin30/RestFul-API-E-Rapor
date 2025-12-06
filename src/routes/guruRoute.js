@@ -23,7 +23,6 @@ router.get(
   "/:guruId/mapel-kelas",
   authenticate,
   allowRoles("admin", "guru"),
-  auditLog,
   getGuruAssignments
 );
 

@@ -8,9 +8,9 @@ const { auditLog } = require('../middlewares/audit');
 router.post('/siswa/:siswaId/mapel/:mapelId/semester/:semester', authenticate, allowRoles('guru'), auditLog, createNilai);
 router.put('/:nilaiId', authenticate, allowRoles('guru'), auditLog, updateNilai);
 router.get('/', authenticate, allowRoles('admin'), auditLog, listNilai);
-router.get('/siswa/:siswaId/semester/:semester', authenticate, allowRoles('admin','guru'), auditLog, listNilai);
-router.get('/semester/:semester', authenticate, allowRoles('siswa'), auditLog, listNilai);
-router.get('/kelas/:kelasId/nilai', authenticate, auditLog, handleGetNilaiByKelas);
-router.get('/siswa/:siswaId', authenticate, allowRoles('admin','guru','siswa'), auditLog, getNilaiBySiswa);
+router.get('/siswa/:siswaId/semester/:semester', authenticate, allowRoles('admin','guru'), listNilai);
+router.get('/semester/:semester', authenticate, allowRoles('siswa'), listNilai);
+router.get('/kelas/:kelasId/nilai', authenticate, handleGetNilaiByKelas);
+router.get('/siswa/:siswaId', authenticate, allowRoles('admin','guru','siswa'), getNilaiBySiswa);
 
 module.exports = router;

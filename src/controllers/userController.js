@@ -158,6 +158,31 @@ async function getAllGuru(req, res, next) {
   }
 }
 
+async function listSiswaByKelas(req, res, next) {
+  try {
+    const { kelasId } = req.params;
+
+    const q = `
+      SELECT 
+        u.id, 
+        u.nama, 
+        u.email, 
+        u.role
+      FROM users u
+      JOIN siswa_kelas sk ON sk.siswa_id = u.id
+      WHERE sk.kelas_id = $1 
+        AND u.role = 'siswa'
+      ORDER BY u.nama ASC
+    `;
+
+    const { rows } = await db.query(q, [kelasId]);
+    return res.json(rows);
+    
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listUsers,
   getUserById,
@@ -165,4 +190,5 @@ module.exports = {
   deleteUser,
   getAllSiswa,
   getAllGuru,
+  listSiswaByKelas,
 };

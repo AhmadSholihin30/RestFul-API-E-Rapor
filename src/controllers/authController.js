@@ -4,6 +4,7 @@ const {
   comparePassword,
   signToken,
 } = require("../utils/helpers");
+const { saveAuditLog } = require("../utils/saveAuditLog");
 
 async function registerUser(req, res, next) {
   try {
@@ -132,15 +133,44 @@ async function register(req, res, next) {
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
+
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+    const userAgent = req.headers['user-agent'] || null;
+
     const q = "SELECT id, nama, email, password_hash, role FROM users WHERE email = $1";
     const { rows } = await db.query(q, [email]);
     const user = rows[0];
-    
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
+    // === EMAIL NOT FOUND ===
+    if (!user) {
+      await saveAuditLog({
+        action: 'LOGIN_FAILED',
+        description: `Login gagal: email ${email} tidak ditemukan`,
+        ip_address: ip,
+        user_agent: userAgent,
+        status_code: 401
+      });
+
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // === WRONG PASSWORD ===
     const ok = await comparePassword(password, user.password_hash);
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
+    if (!ok) {
+      await saveAuditLog({
+        user_id: user.id,
+        role: user.role,
+        action: 'LOGIN_FAILED',
+        description: `Login gagal: password salah untuk ${email}`,
+        ip_address: ip,
+        user_agent: userAgent,
+        status_code: 401
+      });
 
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // === LOGIN SUCCESS ===
     const token = signToken({
       id: user.id,
       role: user.role,
@@ -149,28 +179,38 @@ async function login(req, res, next) {
     });
 
     res.cookie('token', token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: 'none',
-  maxAge: 5 * 60 * 1000,
-  path: '/'
-});
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 5 * 60 * 1000,
+      path: '/',
+    });
 
-// 3. Body response tetap boleh
-res.json({
-  message: "Login berhasil",
-  user: {
-    id: user.id,
-    nama: user.nama,
-    email: user.email,
-    role: user.role,
-  },
-});
+    await saveAuditLog({
+      user_id: user.id,
+      role: user.role,
+      action: 'LOGIN_SUCCESS',
+      description: `Login berhasil untuk ${email}`,
+      ip_address: ip,
+      user_agent: userAgent,
+      status_code: 200
+    });
+
+    res.json({
+      message: "Login berhasil",
+      user: {
+        id: user.id,
+        nama: user.nama,
+        email: user.email,
+        role: user.role,
+      }
+    });
 
   } catch (err) {
     next(err);
   }
 }
+
 
 async function authMe(req, res, next) {
   try {
