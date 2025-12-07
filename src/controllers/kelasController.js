@@ -127,8 +127,17 @@ async function deleteKelas(req, res, next) {
   try {
     const { kelasId } = req.params;
     await auditedQuery('DELETE FROM kelas WHERE id=$1', [kelasId], req);
-    res.json({ message: 'Kelas dihapus' });
-  } catch (err) { next(err); }
+    
+    res.json({ message: 'Kelas berhasil dihapus' });
+
+  } catch (err) {
+    if (err.code === '23503') {
+      return res.status(409).json({ 
+        message: 'Gagal menghapus! Kelas ini masih digunakan di data Guru Mapel atau Siswa. Hapus data terkait terlebih dahulu.' 
+      });
+    }
+    next(err); 
+  }
 }
 
 async function addSiswaToKelas(req, res, next) {
