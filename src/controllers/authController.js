@@ -291,7 +291,7 @@ async function unlockScreen(req, res, next) {
     const ok = await comparePassword(password, rows[0].password_hash);
 
     if (!ok) {
-      return res.status(401).json({ message: "Password salah" });
+      return res.status(400).json({ message: "Password salah" });
     }
 
     // Sukses
